@@ -487,6 +487,20 @@
         }
 
         function renderContent() {
+            // จัดการแนวการพิมพ์ (Landscape / Portrait) ให้เปลี่ยนอัตโนมัติตามเมนู
+            let printStyle = document.getElementById('dynamicPrintStyle');
+            if (!printStyle) {
+                printStyle = document.createElement('style');
+                printStyle.id = 'dynamicPrintStyle';
+                document.head.appendChild(printStyle);
+            }
+            // ถ้าเป็นเมนูที่ 5 ให้พิมพ์แนวตั้ง (Portrait) เมนูอื่นให้พิมพ์แนวนอน (Landscape)
+            if (activeMenu === 5) {
+                printStyle.innerHTML = '@media print { @page { size: A4 portrait; margin: 10mm; } }';
+            } else {
+                printStyle.innerHTML = '@media print { @page { size: A4 landscape; margin: 10mm; } }';
+            }
+
             const container = document.getElementById('contentContainer');
             
             if (appData.length === 0) {
@@ -1099,10 +1113,10 @@
                     <table class="min-w-full text-sm text-left whitespace-nowrap print-fixed-table">
                         <thead class="bg-blue-50 text-blue-900 border-b border-gray-200">
                             <tr>
-                                <th class="px-4 py-3 font-semibold text-center border-r border-gray-200" style="width: 30mm;">วันที่</th>
-                                <th class="px-4 py-3 font-semibold border-r border-gray-200" style="width: 80mm;">บริษัท/หจก/ร้าน</th>
+                                <th class="px-4 py-3 font-semibold text-center border-r border-gray-200" style="width: 25mm;">วันที่</th>
+                                <th class="px-4 py-3 font-semibold border-r border-gray-200" style="width: 70mm;">บริษัท/หจก/ร้าน</th>
                                 <th class="px-4 py-3 font-semibold" style="width: 60mm;">ใบส่งของ/แจ้งหนี้</th>
-                                <th class="px-4 py-3 font-semibold text-right" style="width: 40mm;">จำนวนเงิน</th>
+                                <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จำนวนเงิน</th>
                             </tr>
                         </thead>
             `;
