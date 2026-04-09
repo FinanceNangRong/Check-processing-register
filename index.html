@@ -1114,8 +1114,9 @@
                         <thead class="bg-blue-50 text-blue-900 border-b border-gray-200">
                             <tr>
                                 <th class="px-4 py-3 font-semibold text-center border-r border-gray-200" style="width: 25mm;">วันที่</th>
-                                <th class="px-4 py-3 font-semibold border-r border-gray-200" style="width: 70mm;">บริษัท/หจก/ร้าน</th>
-                                <th class="px-4 py-3 font-semibold" style="width: 60mm;">ใบส่งของ/แจ้งหนี้</th>
+                                <th class="px-4 py-3 font-semibold border-r border-gray-200" style="width: 50mm;">บริษัท/หจก/ร้าน</th>
+                                <th class="px-4 py-3 font-semibold" style="width: 40mm;">ค่า</th>
+                                <th class="px-4 py-3 font-semibold" style="width: 40mm;">ใบส่งของ/แจ้งหนี้</th>
                                 <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จำนวนเงิน</th>
                             </tr>
                         </thead>
@@ -1131,7 +1132,7 @@
             }
 
             if (finalFilteredData.length === 0) {
-                 tableHTML += `<tbody><tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr></tbody>`;
+                 tableHTML += `<tbody><tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr></tbody>`;
             } else {
                 // จัดกลุ่มตามวันที่ (คอลัมน์ X) เป็นหลัก และ บริษัท (คอลัมน์ C) เป็นรอง
                 const groupedData = {};
@@ -1169,7 +1170,7 @@
                 const dateKeys = Object.keys(groupedData).sort((a, b) => Number(a) - Number(b));
 
                 if (dateKeys.length === 0) {
-                    tableHTML += `<tbody><tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">ไม่พบยอดเงินในเงื่อนไขนี้</td></tr></tbody>`;
+                    tableHTML += `<tbody><tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">ไม่พบยอดเงินในเงื่อนไขนี้</td></tr></tbody>`;
                 } else {
                     tableHTML += `<tbody class="divide-y divide-gray-100">`;
 
@@ -1186,7 +1187,10 @@
                                 const e = parseNumberValue(row[4]);
                                 sumGrandTotalE += e;
 
+                                // บังคับแปลงเป็นรูปแบบปีสองหลัก dd/mm/yy (true flag)
+                                const dateX = formatThaiDate(row[23], true);
                                 const invD  = row[3] || '-';
+                                const valM  = String(row[12] || '').trim() || '-';
 
                                 tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
                                 
@@ -1202,6 +1206,7 @@
                                 }
 
                                 tableHTML += `
+                                    <td class="px-4 py-2 text-gray-800 break-words">${valM}</td>
                                     <td class="px-4 py-2 text-gray-800 break-words">${invD}</td>
                                     <td class="px-4 py-2 text-right text-gray-800 font-medium">${formatNumber(e)}</td>
                                 </tr>`;
@@ -1214,7 +1219,7 @@
                     tableHTML += `
                             <tfoot class="bg-gray-200 border-t-2 border-gray-300 font-bold text-gray-900">
                                 <tr>
-                                    <td colspan="3" class="px-4 py-3 text-center border-r border-gray-300">รวมยอดเงินทั้งสิ้น</td>
+                                    <td colspan="4" class="px-4 py-3 text-center border-r border-gray-300">รวมยอดเงินทั้งสิ้น</td>
                                     <td class="px-4 py-3 text-right text-blue-900">${formatNumber(sumGrandTotalE)}</td>
                                 </tr>
                             </tfoot>
