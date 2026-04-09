@@ -1119,8 +1119,8 @@
             if (finalFilteredData.length === 0) {
                  tableHTML += `<tbody><tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr></tbody>`;
             } else {
-                // จัดกลุ่มตามบริษัท คอลัมน์ C (Index 2)
-                const groupedByC = {};
+                // จัดกลุ่มตามวันที่ (คอลัมน์ X) เป็นหลัก และ บริษัท (คอลัมน์ C) เป็นรอง
+                const groupedData = {};
                 finalFilteredData.forEach(row => {
                     const e = parseNumberValue(row[4]);
                     if (e === 0) return;
@@ -1128,43 +1128,70 @@
                     let compC = String(row[2] || '').trim();
                     if (compC === '') compC = 'ไม่ระบุบริษัท';
 
-                    if (!groupedByC[compC]) groupedByC[compC] = [];
-                    groupedByC[compC].push(row);
+                    // ดึงวันที่และสร้าง Sort Key สำหรับเรียงลำดับ
+                    const rawDate = row[23];
+                    const jsDate = getJSDate(rawDate);
+                    const dateSortKey = jsDate ? jsDate.getTime() : 0;
+                    const displayDate = formatThaiDate(rawDate, true);
+
+                    if (!groupedData[dateSortKey]) {
+                        groupedData[dateSortKey] = {
+                            displayDate: displayDate,
+                            companies: {},
+                            totalRows: 0
+                        };
+                    }
+
+                    if (!groupedData[dateSortKey].companies[compC]) {
+                        groupedData[dateSortKey].companies[compC] = [];
+                    }
+
+                    groupedData[dateSortKey].companies[compC].push(row);
+                    groupedData[dateSortKey].totalRows++;
                 });
 
                 let sumGrandTotalE = 0;
-                const cKeys = Object.keys(groupedByC).sort();
+                // เรียงลำดับวันที่จากน้อยไปมาก
+                const dateKeys = Object.keys(groupedData).sort((a, b) => Number(a) - Number(b));
 
-                if (cKeys.length === 0) {
+                if (dateKeys.length === 0) {
                     tableHTML += `<tbody><tr><td colspan="4" class="px-4 py-8 text-center text-gray-500">ไม่พบยอดเงินในเงื่อนไขนี้</td></tr></tbody>`;
                 } else {
                     tableHTML += `<tbody class="divide-y divide-gray-100">`;
 
-                    cKeys.forEach((cKey, cIndex) => {
-                        const groupRows = groupedByC[cKey];
-                        let groupSumE = 0;
+                    dateKeys.forEach((dKey) => {
+                        const dateGroup = groupedData[dKey];
+                        const cKeys = Object.keys(dateGroup.companies).sort();
 
-                        groupRows.forEach((row, idx) => {
-                            const e = parseNumberValue(row[4]);
-                            groupSumE += e;
-                            sumGrandTotalE += e;
+                        let isFirstRowOfDate = true;
 
-                            // บังคับแปลงเป็นรูปแบบปีสองหลัก dd/mm/yy (true flag)
-                            const dateX = formatThaiDate(row[23], true);
-                            const invD  = row[3] || '-';
+                        cKeys.forEach((cKey) => {
+                            const groupRows = dateGroup.companies[cKey];
 
-                            tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
-                            
-                            tableHTML += `<td class="px-4 py-2 text-center text-gray-800 border-r border-gray-200">${dateX}</td>`;
-                            
-                            if (idx === 0) {
-                                tableHTML += `<td rowspan="${groupRows.length}" class="px-4 py-2 font-bold text-gray-800 align-top border-r border-gray-200 bg-white break-words">${cKey}</td>`;
-                            }
+                            groupRows.forEach((row, idx) => {
+                                const e = parseNumberValue(row[4]);
+                                sumGrandTotalE += e;
 
-                            tableHTML += `
-                                <td class="px-4 py-2 text-gray-800 break-words">${invD}</td>
-                                <td class="px-4 py-2 text-right text-gray-800 font-medium">${formatNumber(e)}</td>
-                            </tr>`;
+                                const invD  = row[3] || '-';
+
+                                tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
+                                
+                                // คอลัมน์ 1: วันที่ (ใช้ rowspan เพื่อแสดงเป็นกลุ่ม)
+                                if (isFirstRowOfDate) {
+                                    tableHTML += `<td rowspan="${dateGroup.totalRows}" class="px-4 py-2 text-center text-gray-800 border-r border-gray-200 align-top bg-white font-medium">${dateGroup.displayDate}</td>`;
+                                    isFirstRowOfDate = false;
+                                }
+                                
+                                // คอลัมน์ 2: บริษัท (ใช้ rowspan เพื่อแสดงเป็นกลุ่มย่อย)
+                                if (idx === 0) {
+                                    tableHTML += `<td rowspan="${groupRows.length}" class="px-4 py-2 font-bold text-gray-800 align-top border-r border-gray-200 bg-white break-words">${cKey}</td>`;
+                                }
+
+                                tableHTML += `
+                                    <td class="px-4 py-2 text-gray-800 break-words">${invD}</td>
+                                    <td class="px-4 py-2 text-right text-gray-800 font-medium">${formatNumber(e)}</td>
+                                </tr>`;
+                            });
                         });
                     });
 
