@@ -248,6 +248,11 @@
         let startDate_forReport5 = "";
         let endDate_forReport5 = "";
         let selectedCategoriesM_forReport5 = []; // เพิ่มตัวแปรสำหรับเก็บรายการ คอลัมน์ M สำหรับรายงานที่ 5
+        let selectedCompanies_forReport5 = []; // เพิ่มตัวแปรสำหรับเก็บบริษัทแบบเลือกหลายรายการ รายงานที่ 5
+        let currentAvailableCompanies5 = []; // เพิ่มตัวแปรเก็บรายการบริษัทที่แสดงใน Dropdown ปัจจุบัน
+        let currentAvailableCategories5 = []; // เพิ่มตัวแปรเก็บรายการค่าที่แสดงใน Dropdown ปัจจุบัน
+        let report5DropdownOpen = false; // สถานะการเปิด/ปิด dropdown ของค่า
+        let report5CompanyDropdownOpen = false; // สถานะการเปิด/ปิด dropdown ของบริษัท
         
         const GOOGLE_SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vT-vY0-Ic04efRHyFptGVLR3UCipBUBhJiFSCWl_3RDAbQP6cUdQaz53D_1Sru3rg/pub?output=csv";
 
@@ -473,6 +478,73 @@
             if (type === 'end') endDate_forReport5 = val;
             renderReport5(document.getElementById('contentContainer'));
         }
+
+        function selectAllCompanies5() {
+            selectedCompanies_forReport5 = [...currentAvailableCompanies5];
+            renderReport5(document.getElementById('contentContainer'));
+        }
+
+        function clearAllCompanies5() {
+            selectedCompanies_forReport5 = [];
+            renderReport5(document.getElementById('contentContainer'));
+        }
+
+        function selectAllCategories5() {
+            selectedCategoriesM_forReport5 = [...currentAvailableCategories5];
+            renderReport5(document.getElementById('contentContainer'));
+        }
+
+        function clearAllCategories5() {
+            selectedCategoriesM_forReport5 = [];
+            renderReport5(document.getElementById('contentContainer'));
+        }
+
+        // เพิ่มฟังก์ชันสำหรับอัปเดตค่า Multi-select ของบริษัท
+        function updateReport5CompanyFilter(val, isChecked) {
+            if (isChecked) {
+                if (!selectedCompanies_forReport5.includes(val)) {
+                    selectedCompanies_forReport5.push(val);
+                }
+            } else {
+                selectedCompanies_forReport5 = selectedCompanies_forReport5.filter(item => item !== val);
+            }
+            renderReport5(document.getElementById('contentContainer'));
+        }
+
+        function toggleReport5CompanyDropdown() {
+            report5CompanyDropdownOpen = !report5CompanyDropdownOpen;
+            const dd = document.getElementById('compDropdown5');
+            if (dd) {
+                if (report5CompanyDropdownOpen) dd.classList.remove('hidden');
+                else dd.classList.add('hidden');
+            }
+        }
+
+        function toggleReport5Dropdown() {
+            report5DropdownOpen = !report5DropdownOpen;
+            const dd = document.getElementById('catDropdown5');
+            if (dd) {
+                if (report5DropdownOpen) dd.classList.remove('hidden');
+                else dd.classList.add('hidden');
+            }
+        }
+
+        // ปิด dropdown เมื่อคลิกที่พื้นที่อื่น
+        window.addEventListener('click', function(e) {
+            const catDd = document.getElementById('catDropdown5');
+            const catBtn = document.getElementById('catDropdownBtn5');
+            if (catDd && catBtn && report5DropdownOpen && !catDd.contains(e.target) && !catBtn.contains(e.target)) {
+                report5DropdownOpen = false;
+                catDd.classList.add('hidden');
+            }
+
+            const compDd = document.getElementById('compDropdown5');
+            const compBtn = document.getElementById('compDropdownBtn5');
+            if (compDd && compBtn && report5CompanyDropdownOpen && !compDd.contains(e.target) && !compBtn.contains(e.target)) {
+                report5CompanyDropdownOpen = false;
+                compDd.classList.add('hidden');
+            }
+        });
 
         // เพิ่มฟังก์ชันสำหรับอัปเดตค่า Multi-select ของคอลัมน์ M
         function updateReport5CategoryFilter(val, isChecked) {
@@ -1057,11 +1129,28 @@
                 });
             }
 
-            // ดึงค่าไม่ซ้ำ จากคอลัมน์ M (Index 12) *หลังจากกรองวันที่แล้ว* เพื่อสร้าง Checkbox ให้แสดงเฉพาะค่าที่มีในช่วงวันที่เลือก
-            const uniqueCategoriesM = [...new Set(
-                dateFilteredData.map(row => String(row[12] || '').trim())
+            // ดึงบริษัทไม่ซ้ำ เพื่อสร้าง Dropdown บริษัท (กรองตามวันที่แล้ว)
+            const uniqueCompanies = [...new Set(
+                dateFilteredData.map(row => String(row[2] || '').trim())
                        .filter(val => val !== '')
             )].sort();
+            currentAvailableCompanies5 = uniqueCompanies;
+
+            // กรอง 3: บริษัท (เลือกหลายรายการ)
+            let compFilteredData = dateFilteredData;
+            if (selectedCompanies_forReport5.length > 0) {
+                compFilteredData = compFilteredData.filter(row => {
+                    const rowComp = String(row[2] || '').trim();
+                    return selectedCompanies_forReport5.includes(rowComp);
+                });
+            }
+
+            // ดึงค่าไม่ซ้ำ จากคอลัมน์ M (Index 12) *หลังจากกรองวันที่และบริษัทแล้ว* เพื่อสร้าง Checkbox
+            const uniqueCategoriesM = [...new Set(
+                compFilteredData.map(row => String(row[12] || '').trim())
+                       .filter(val => val !== '')
+            )].sort();
+            currentAvailableCategories5 = uniqueCategoriesM;
 
             let titleText = 'ทะเบียนคุมส่งทำเช็ค';
             if(startDate_forReport5) titleText += ` ตั้งแต่วันที่ ${formatHTMLDate(startDate_forReport5)}`;
@@ -1072,36 +1161,77 @@
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-4">
                         <div class="w-full lg:w-auto">
                             <h3 class="text-2xl font-bold text-gray-800 mb-3">ทะเบียนคุมส่งทำเช็ค</h3>
-                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                            
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
                                 <label class="text-gray-700 font-medium whitespace-nowrap">ตั้งแต่วันที่:</label>
                                 <input type="date" id="startDate5" value="${startDate_forReport5}" onchange="updateReport5Dates('start', this.value)" class="border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm w-full sm:w-auto">
                                 
                                 <label class="text-gray-700 font-medium whitespace-nowrap mt-2 sm:mt-0">ถึงวันที่:</label>
                                 <input type="date" id="endDate5" value="${endDate_forReport5}" onchange="updateReport5Dates('end', this.value)" class="border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm w-full sm:w-auto">
                             </div>
+
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                                <label class="text-gray-700 font-medium whitespace-nowrap">บริษัท:</label>
+                                <div class="relative inline-block text-left w-full sm:w-auto">
+                                    <button type="button" id="compDropdownBtn5" onclick="toggleReport5CompanyDropdown()" class="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-800 shadow-sm flex items-center justify-between w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <span class="truncate">${selectedCompanies_forReport5.length > 0 ? selectedCompanies_forReport5.join(', ') : '-- เลือกบริษัททั้งหมด --'}</span>
+                                        <svg class="-mr-1 ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div id="compDropdown5" class="${report5CompanyDropdownOpen ? '' : 'hidden'} origin-top-right absolute left-0 mt-2 w-full sm:w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-30">
+                                        <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 sticky top-0 z-10 rounded-t-md">
+                                            <button type="button" onclick="selectAllCompanies5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
+                                            <button type="button" onclick="clearAllCompanies5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                        </div>
+                                        <div class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
+                                            ${uniqueCompanies.length > 0 ? uniqueCompanies.map(comp => `
+                                                <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                                                    <input type="checkbox" value="${comp}" 
+                                                           ${selectedCompanies_forReport5.includes(comp) ? 'checked' : ''}
+                                                           onchange="updateReport5CompanyFilter(this.value, this.checked)"
+                                                           class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3">
+                                                    <span class="text-sm text-gray-700">${comp}</span>
+                                                </label>
+                                            `).join('') : '<div class="py-2 text-sm text-gray-500">ไม่พบบริษัทในช่วงที่เลือก</div>'}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <label class="text-gray-700 font-medium whitespace-nowrap ml-0 sm:ml-2 mt-2 sm:mt-0">ค่า:</label>
+                                <div class="relative inline-block text-left w-full sm:w-auto">
+                                    <button type="button" id="catDropdownBtn5" onclick="toggleReport5Dropdown()" class="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-800 shadow-sm flex items-center justify-between w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <span class="truncate">${selectedCategoriesM_forReport5.length > 0 ? selectedCategoriesM_forReport5.join(', ') : '-- เลือกค่าทั้งหมด --'}</span>
+                                        <svg class="-mr-1 ml-2 h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    <div id="catDropdown5" class="${report5DropdownOpen ? '' : 'hidden'} origin-top-right absolute left-0 mt-2 w-full sm:w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
+                                        <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 sticky top-0 z-10 rounded-t-md">
+                                            <button type="button" onclick="selectAllCategories5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
+                                            <button type="button" onclick="clearAllCategories5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                        </div>
+                                        <div class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
+                                            ${uniqueCategoriesM.length > 0 ? uniqueCategoriesM.map(cat => `
+                                                <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0">
+                                                    <input type="checkbox" value="${cat}" 
+                                                           ${selectedCategoriesM_forReport5.includes(cat) ? 'checked' : ''}
+                                                           onchange="updateReport5CategoryFilter(this.value, this.checked)"
+                                                           class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 mr-3">
+                                                    <span class="text-sm text-gray-700">${cat}</span>
+                                                </label>
+                                            `).join('') : '<div class="py-2 text-sm text-gray-500">ไม่พบค่าในช่วงที่เลือก</div>'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition-colors shrink-0">
+                        <button onclick="window.print()" class="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded shadow flex items-center gap-2 transition-colors shrink-0 h-fit">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                             </svg>
                             พิมพ์รายงาน
                         </button>
-                    </div>
-
-                    <!-- ตัวกรองเลือกคอลัมน์ M หลายรายการ -->
-                    <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm w-full">
-                        <label class="text-gray-700 font-medium mb-3 block">เลือกค่าที่ต้องการเรียกดู (สามารถเลือกได้มากกว่า 1 รายการ):</label>
-                        <div class="flex flex-wrap gap-3">
-                            ${uniqueCategoriesM.length > 0 ? uniqueCategoriesM.map(cat => `
-                                <label class="inline-flex items-center cursor-pointer bg-gray-50 px-3 py-1.5 rounded-md border border-gray-200 shadow-sm hover:bg-blue-50 hover:border-blue-200 transition-colors">
-                                    <input type="checkbox" value="${cat}" 
-                                           ${selectedCategoriesM_forReport5.includes(cat) ? 'checked' : ''}
-                                           onchange="updateReport5CategoryFilter(this.value, this.checked)"
-                                           class="w-4 h-4 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500">
-                                    <span class="ml-2 text-sm text-gray-700">${cat}</span>
-                                </label>
-                            `).join('') : '<span class="text-sm text-gray-500">ไม่พบค่าในช่วงวันที่เลือก</span>'}
-                        </div>
                     </div>
                 </div>
                 
@@ -1122,8 +1252,8 @@
                         </thead>
             `;
 
-            // กรอง 3: ตัวกรองค่าแบบเลือกได้หลายรายการ จากคอลัมน์ M (Index 12)
-            let finalFilteredData = dateFilteredData;
+            // กรอง 4: ตัวกรองค่าแบบเลือกได้หลายรายการ จากคอลัมน์ M (Index 12)
+            let finalFilteredData = compFilteredData;
             if (selectedCategoriesM_forReport5.length > 0) {
                 finalFilteredData = finalFilteredData.filter(row => {
                     const rowCat = String(row[12] || '').trim();
