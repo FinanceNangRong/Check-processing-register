@@ -278,7 +278,7 @@
             { id: 3, title: "3. รายงานเจ้าหนี้ ทวนเจ้าหนี้ หน่วยงาน" },
             { id: 4, title: "4. รายงานเจ้าหนี้ ทวนเจ้าหนี้ บริษัท" },
             { id: 5, title: "5. ทะเบียนคุมส่งทำเช็ค" },
-            { id: 6, title: "6. ดึงข้อมูลย้อนหลัง" }
+            { id: 6, title: "6. รายงานเจ้าหนี้ย้อนหลัง" }
         ];
 
         function renderMenu() {
@@ -535,6 +535,24 @@
             return `${parts[2]}/${parts[1]}/${parseInt(parts[0])+543}`;
         }
 
+        // ฟังก์ชันแปลงรูปแบบ 03/2026 เป็น มีนาคม 2026
+        function getThaiMonthYear(mm_yyyy) {
+            if (!mm_yyyy || typeof mm_yyyy !== 'string') return mm_yyyy;
+            const parts = mm_yyyy.split('/');
+            if (parts.length === 2) {
+                const monthIndex = parseInt(parts[0], 10) - 1;
+                const year = parts[1];
+                const thaiMonths = [
+                    "มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน",
+                    "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"
+                ];
+                if (monthIndex >= 0 && monthIndex < 12) {
+                    return `${thaiMonths[monthIndex]} ${year}`;
+                }
+            }
+            return mm_yyyy; // คืนค่าเดิมหากไม่ตรงรูปแบบ
+        }
+
         function updateReport2Category(val) {
             selectedCategoryM_forReport2 = val;
             renderReport2(document.getElementById('contentContainer'));
@@ -748,10 +766,7 @@
             } else {
                 keys.forEach(key => {
                     const data = groupedData[key];
-                    sumE += data.E;
-                    sumF += data.F;
-                    sumG += data.G;
-                    sumH += data.H;
+                    sumE += data.E; sumF += data.F; sumG += data.G; sumH += data.H;
 
                     tableHTML += `
                         <tr class="hover:bg-gray-50 transition-colors">
@@ -862,10 +877,7 @@
                     const invD  = row[3] || '-';             
                     const dateI = formatThaiDate(row[8]);    
 
-                    sumE += e;
-                    sumF += f;
-                    sumG += g;
-                    sumH += h;
+                    sumE += e; sumF += f; sumG += g; sumH += h;
 
                     tableHTML += `
                         <tr class="hover:bg-gray-50 transition-colors">
@@ -897,11 +909,7 @@
                 `;
             }
 
-            tableHTML += `
-                    </table>
-                </div>
-            `;
-
+            tableHTML += `</table></div>`;
             container.innerHTML = headerHTML + tableHTML;
         }
 
@@ -957,7 +965,6 @@
                 filteredData = appData.filter(row => String(row[13] || '').trim() === selectedCategoryN_forReport3);
             }
 
-            // กรองเพิ่มเติม: เฉพาะข้อมูลในคอลัมน์ W (Index 22) ที่เป็นค่าว่าง
             filteredData = filteredData.filter(row => String(row[22] || '').trim() === '');
 
             const groupedByM = {};
@@ -989,19 +996,16 @@
 
                     groupRows.forEach((row, idx) => {
                         const e = parseNumberValue(row[4]);
-                        groupSumE += e;
-                        sumGrandTotalE += e;
+                        groupSumE += e; sumGrandTotalE += e;
 
                         const dateB = formatThaiDate(row[1]);
                         const compC = row[2] || '-';
                         const invD  = row[3] || '-';
 
                         tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
-                        
                         if (idx === 0) {
                             tableHTML += `<td rowspan="${groupRows.length}" class="px-4 py-2 font-bold text-gray-800 align-top border-r border-gray-200 bg-white">${mKey}</td>`;
                         }
-
                         tableHTML += `
                             <td class="px-4 py-2 text-center text-gray-800">${dateB}</td>
                             <td class="px-4 py-2 text-gray-800 break-words">${compC}</td>
@@ -1033,11 +1037,7 @@
                 `;
             }
 
-            tableHTML += `
-                    </table>
-                </div>
-            `;
-
+            tableHTML += `</table></div>`;
             container.innerHTML = headerHTML + tableHTML;
         }
 
@@ -1129,18 +1129,15 @@
 
                         groupRows.forEach((row, idx) => {
                             const e = parseNumberValue(row[4]);
-                            groupSumE += e;
-                            sumGrandTotalE += e;
+                            groupSumE += e; sumGrandTotalE += e;
 
                             const dateB = formatThaiDate(row[1]);
                             const invD  = row[3] || '-';
 
                             tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
-                            
                             if (idx === 0) {
                                 tableHTML += `<td rowspan="${groupRows.length}" class="px-4 py-2 font-bold text-gray-800 align-top border-r border-gray-200 bg-white">${mKey}</td>`;
                             }
-
                             tableHTML += `
                                 <td class="px-4 py-2 text-center text-gray-800">${dateB}</td>
                                 <td class="px-4 py-2 text-gray-800 break-words">${invD}</td>
@@ -1172,11 +1169,7 @@
                 }
             }
 
-            tableHTML += `
-                    </table>
-                </div>
-            `;
-
+            tableHTML += `</table></div>`;
             container.innerHTML = headerHTML + tableHTML;
         }
 
@@ -1184,10 +1177,8 @@
         // รายงานที่ 5: ทะเบียนคุมส่งทำเช็ค
         // ==========================================
         function renderReport5(container) {
-            // กรอง 1: ค่า "กำลังดำเนินการจ่าย" จากคอลัมน์ W (Index 22) - ใช้ includes ครอบคลุมกรณีมีวันที่ต่อท้ายข้อความ
             let dateFilteredData = appData.filter(row => String(row[22] || '').trim().includes('กำลังดำเนินการจ่าย'));
 
-            // กรอง 2: ช่วงวันที่ จากคอลัมน์ X (Index 23)
             if (startDate_forReport5) {
                 const sDate = new Date(startDate_forReport5);
                 sDate.setHours(0,0,0,0);
@@ -1205,14 +1196,12 @@
                 });
             }
 
-            // ดึงบริษัทไม่ซ้ำ เพื่อสร้าง Dropdown บริษัท (กรองตามวันที่แล้ว)
             const uniqueCompanies = [...new Set(
                 dateFilteredData.map(row => String(row[2] || '').trim())
                        .filter(val => val !== '')
             )].sort();
             currentAvailableCompanies5 = uniqueCompanies;
 
-            // กรอง 3: บริษัท (เลือกหลายรายการ)
             let compFilteredData = dateFilteredData;
             if (selectedCompanies_forReport5.length > 0) {
                 compFilteredData = compFilteredData.filter(row => {
@@ -1221,7 +1210,6 @@
                 });
             }
 
-            // ดึงค่าไม่ซ้ำ จากคอลัมน์ M (Index 12) *หลังจากกรองวันที่และบริษัทแล้ว* เพื่อสร้าง Checkbox
             const uniqueCategoriesM = [...new Set(
                 compFilteredData.map(row => String(row[12] || '').trim())
                        .filter(val => val !== '')
@@ -1328,7 +1316,6 @@
                         </thead>
             `;
 
-            // กรอง 4: ตัวกรองค่าแบบเลือกได้หลายรายการ จากคอลัมน์ M (Index 12)
             let finalFilteredData = compFilteredData;
             if (selectedCategoriesM_forReport5.length > 0) {
                 finalFilteredData = finalFilteredData.filter(row => {
@@ -1340,7 +1327,6 @@
             if (finalFilteredData.length === 0) {
                  tableHTML += `<tbody><tr><td colspan="5" class="px-4 py-8 text-center text-gray-500">ไม่พบข้อมูลตามเงื่อนไขที่เลือก</td></tr></tbody>`;
             } else {
-                // จัดกลุ่มตามวันที่ (คอลัมน์ X) เป็นหลัก และ บริษัท (คอลัมน์ C) เป็นรอง
                 const groupedData = {};
                 finalFilteredData.forEach(row => {
                     const e = parseNumberValue(row[4]);
@@ -1349,7 +1335,6 @@
                     let compC = String(row[2] || '').trim();
                     if (compC === '') compC = 'ไม่ระบุบริษัท';
 
-                    // ดึงวันที่และสร้าง Sort Key สำหรับเรียงลำดับ
                     const rawDate = row[23];
                     const jsDate = getJSDate(rawDate);
                     const dateSortKey = jsDate ? jsDate.getTime() : 0;
@@ -1372,7 +1357,6 @@
                 });
 
                 let sumGrandTotalE = 0;
-                // เรียงลำดับวันที่จากน้อยไปมาก
                 const dateKeys = Object.keys(groupedData).sort((a, b) => Number(a) - Number(b));
 
                 if (dateKeys.length === 0) {
@@ -1393,20 +1377,16 @@
                                 const e = parseNumberValue(row[4]);
                                 sumGrandTotalE += e;
 
-                                // บังคับแปลงเป็นรูปแบบปีสองหลัก dd/mm/yy (true flag)
-                                const dateX = formatThaiDate(row[23], true);
                                 const invD  = row[3] || '-';
                                 const valM  = String(row[12] || '').trim() || '-';
 
                                 tableHTML += `<tr class="hover:bg-gray-50 transition-colors">`;
                                 
-                                // คอลัมน์ 1: วันที่ (ใช้ rowspan เพื่อแสดงเป็นกลุ่ม)
                                 if (isFirstRowOfDate) {
                                     tableHTML += `<td rowspan="${dateGroup.totalRows}" class="px-4 py-2 text-center text-gray-800 border-r border-gray-200 align-top bg-white font-medium">${dateGroup.displayDate}</td>`;
                                     isFirstRowOfDate = false;
                                 }
                                 
-                                // คอลัมน์ 2: บริษัท (ใช้ rowspan เพื่อแสดงเป็นกลุ่มย่อย)
                                 if (idx === 0) {
                                     tableHTML += `<td rowspan="${groupRows.length}" class="px-4 py-2 font-bold text-gray-800 align-top border-r border-gray-200 bg-white break-words">${cKey}</td>`;
                                 }
@@ -1433,16 +1413,12 @@
                 }
             }
 
-            tableHTML += `
-                    </table>
-                </div>
-            `;
-
+            tableHTML += `</table></div>`;
             container.innerHTML = headerHTML + tableHTML;
         }
 
         // ==========================================
-        // รายงานที่ 6: ดึงข้อมูลย้อนหลัง
+        // รายงานที่ 6: รายงานเจ้าหนี้ย้อนหลัง
         // ==========================================
         function renderReport6(container) {
             // ถ้ายังไม่โหลดรายชื่อให้ดึงข้อมูลก่อน
@@ -1472,7 +1448,7 @@
 
             let headerHTML = `
                 <div class="flex flex-col mb-6 gap-4 no-print">
-                    <h3 class="text-2xl font-bold text-gray-800">6. ดึงข้อมูลย้อนหลัง</h3>
+                    <h3 class="text-2xl font-bold text-gray-800">6. รายงานเจ้าหนี้ย้อนหลัง</h3>
                     <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm w-full flex flex-col sm:flex-row items-start sm:items-center gap-3">
                         <label class="text-gray-700 font-medium whitespace-nowrap">เลือกข้อมูลจากดรอปดาวน์:</label>
                         <select onchange="handleHistorySelect6(this.value)" class="border border-gray-300 rounded-lg px-4 py-2 bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm w-full sm:w-80 cursor-pointer">
@@ -1488,6 +1464,12 @@
             if (isLoadingData6) {
                 contentHTML = '<div class="text-center text-blue-500 py-8">กำลังโหลดข้อมูลรายงาน...</div>';
             } else if (appData6.length > 0) {
+                // ดึงชื่อของข้อมูลที่กำลังเลือก เพื่อแปลงเป็นชื่อเดือน
+                const selectedItem = historyList6.find(h => h.url === selectedHistoryUrl6);
+                const selectedName = selectedItem ? selectedItem.name : "";
+                const formattedDate = getThaiMonthYear(selectedName);
+                const printTitle = `รายงานเจ้าหนี้ เดือน ${formattedDate}`;
+
                 // ประมวลผลแบบเดียวกันกับรายงานที่ 1
                 const groupedData = {};
                 appData6.forEach(row => {
@@ -1522,7 +1504,7 @@
                         </button>
                     </div>
                     
-                    <div class="print-only print-title-report1">แบบรายงานเจ้าหนี้ เดือนเก่า</div>
+                    <div class="print-only font-bold text-center" style="font-size: 7pt !important; margin-bottom: 15px;">${printTitle}</div>
                     
                     <div class="overflow-x-auto bg-white rounded-lg border border-gray-200 shadow-sm flex justify-center">
                         <table class="w-full text-sm text-left report1-table-print" style="table-layout: fixed;">
