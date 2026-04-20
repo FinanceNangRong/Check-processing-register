@@ -13,6 +13,9 @@
     <!-- ฟอนต์ Noto Sans Thai -->
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        html {
+            font-size: 90%; /* ลดขนาดหน้าเว็บโดยรวมลง 10% (กระทบกับขนาดของโครงสร้างทั้งหมด) */
+        }
         body {
             font-family: 'Noto Sans Thai', sans-serif;
             background-color: #f3f4f6;
@@ -98,10 +101,10 @@
             }
             th, td {
                 border: 1px solid #000 !important;
-                padding: 0.6mm 2px !important; /* ลดความกว้าง padding ซ้ายขวา */
-                height: 0.6mm !important;
+                padding: 0.5mm 2px !important; /* ลดความกว้าง padding ซ้ายขวา */
+                height: 0.5mm !important;
                 line-height: 1 !important;
-                font-size: 7pt !important; /* บังคับขนาด 7 ในตาราง */
+                font-size: 6.5pt !important; /* บังคับขนาดเล็กลง 10% จาก 7pt */
             }
             #printArea {
                 padding-top: 0;
@@ -756,20 +759,20 @@
                 printStyle.innerHTML = `
                     @media print { 
                         @page { size: A4 landscape; margin: 10mm; } 
-                        body, html { background: white !important; font-size: 10pt !important; height: auto !important; overflow: visible !important; display: block !important; }
+                        body, html { background: white !important; font-size: 9pt !important; height: auto !important; overflow: visible !important; display: block !important; }
                         .h-screen, .overflow-hidden, .overflow-auto, .overflow-x-auto, .flex-1, main, #printArea, #contentContainer { height: auto !important; overflow: visible !important; display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; page-break-inside: auto !important; break-inside: auto !important; }
                         header, aside, .p-4.bg-gray-50.border-b, #report7-search-area, .print\\:hidden { display: none !important; }
                         #report7-results-area { display: block !important; padding: 0 !important; margin: 0 !important; }
                         .bg-white { box-shadow: none !important; border: none !important; padding: 0 !important; }
                         .max-w-5xl { max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
                         .bg-slate-50.rounded-2xl.p-5 { background: transparent !important; border: none !important; padding: 0 !important; margin-bottom: 15px !important; }
-                        table.report7-main-table { width: 90% !important; margin: 0 auto !important; border-collapse: collapse !important; font-size: 9pt !important; }
-                        .print-summary-block table { width: 45% !important; margin: 0 auto !important; border-collapse: collapse !important; font-size: 10pt !important; }
+                        table.report7-main-table { width: 90% !important; margin: 0 auto !important; border-collapse: collapse !important; font-size: 8pt !important; }
+                        .print-summary-block table { width: 45% !important; margin: 0 auto !important; border-collapse: collapse !important; font-size: 9pt !important; }
                         th, td { border: 1px solid #000 !important; padding: 4px 6px !important; color: black !important; font-weight: normal !important; }
                         th { background-color: #f1f5f9 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; }
                         .bg-blue-50\\/60 { background-color: #f3f4f6 !important; -webkit-print-color-adjust: exact; }
-                        .text-blue-800 { color: black !important; font-size: 14pt !important; }
-                        .text-slate-600 { color: black !important; font-size: 10pt !important; }
+                        .text-blue-800 { color: black !important; font-size: 12.5pt !important; }
+                        .text-slate-600 { color: black !important; font-size: 9pt !important; }
                         .print-summary-block { display: block !important; page-break-inside: avoid; margin-top: 20px; }
                     }
                 `;
@@ -777,12 +780,12 @@
                 printStyle.innerHTML = `
                     @media print { 
                         @page { size: A4 portrait; margin: 15mm; } 
-                        body, html { background: white !important; font-size: 12pt !important; height: auto !important; overflow: visible !important; display: block !important; }
+                        body, html { background: white !important; font-size: 11pt !important; height: auto !important; overflow: visible !important; display: block !important; }
                         .h-screen, .overflow-hidden, .overflow-auto, .overflow-x-auto, .flex-1, main, #printArea, #contentContainer { height: auto !important; overflow: visible !important; display: block !important; position: static !important; margin: 0 !important; padding: 0 !important; }
                         header, aside, .p-4.bg-gray-50.border-b, .no-print { display: none !important; }
                         .print-only-container { box-shadow: none !important; margin: 0 !important; padding: 0 !important; width: 100% !important; min-height: auto !important; }
                         .print-table { width: 100% !important; border-collapse: collapse !important; }
-                        .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px 6px !important; font-size: 14px !important; color: black !important; }
+                        .print-table th, .print-table td { border: 1px solid #000 !important; padding: 4px 6px !important; font-size: 12.5px !important; color: black !important; }
                         .print-table th { background-color: #f3f4f6 !important; font-weight: bold !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                     }
                 `;
@@ -1783,6 +1786,46 @@
             container.innerHTML = headerHTML + contentHTML;
         }
 
+        function handleHistorySelect6(url) {
+            selectedHistoryUrl6 = url;
+            if (!url) {
+                appData6 = [];
+                renderReport6(document.getElementById('contentContainer'));
+                return;
+            }
+
+            isLoadingData6 = true;
+            renderReport6(document.getElementById('contentContainer'));
+
+            let fetchUrl = url;
+            if(fetchUrl.includes('pubhtml')) {
+                fetchUrl = fetchUrl.replace('pubhtml', 'pub').split('?')[0] + '?output=csv';
+            }
+
+            Papa.parse(fetchUrl, {
+                download: true,
+                header: false,
+                complete: function(results) {
+                    const data = results.data;
+                    if(data.length < 5) {
+                        alert("ข้อมูลมีน้อยกว่า 5 แถว ไม่สามารถแสดงผลได้");
+                        appData6 = [];
+                    } else {
+                        appData6 = data.slice(4).filter(row => row.length > 0 && row.some(cell => cell !== "" && cell !== null && cell !== undefined));
+                    }
+                    isLoadingData6 = false;
+                    renderReport6(document.getElementById('contentContainer'));
+                },
+                error: function(err) {
+                    console.error(err);
+                    alert("ไม่สามารถดึงข้อมูลย้อนหลังจากลิงก์ที่เลือกได้");
+                    appData6 = [];
+                    isLoadingData6 = false;
+                    renderReport6(document.getElementById('contentContainer'));
+                }
+            });
+        }
+
         // ==========================================
         // รายงานที่ 7: ค้นหาสถานะบริษัท มีเอกสาร/ดำเนินการ/จ่าย
         // ==========================================
@@ -1801,25 +1844,27 @@
                     <div class="text-center space-y-3 pt-4 print:hidden">
                         <img src="https://github.com/FinanceNangRong/Check-processing-register/raw/main/NRHOS.png" 
                              alt="NRHOS Logo" 
-                             class="h-16 mx-auto mb-4 object-contain drop-shadow-md"
-                             onerror="this.onerror=null; this.style.display='none';">
-                        <h1 class="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 py-1">ระบบค้นหาข้อมูลเจ้าหนี้คงค้าง</h1>
+                             class="h-20 md:h-24 mx-auto mb-8 object-contain drop-shadow-md hover:scale-105 transition-transform duration-300"
+                             onerror="this.onerror=null; this.src='https://github.com/FinanceNangRong/Check-processing-register/raw/master/NRHOS.png';">
+                        <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-700 to-indigo-600 py-1 leading-relaxed">ระบบค้นหาข้อมูลเจ้าหนี้คงค้าง สำหรับเจ้าหน้าที่การเงิน</h1>
                         <p class="text-slate-500 font-medium tracking-wide uppercase text-sm">Data on Outstanding Creditors</p>
                     </div>
 
                     <!-- กล่องค้นหา -->
                     <div class="bg-white p-6 md:p-8 rounded-[2rem] shadow-xl shadow-slate-200/40 ring-1 ring-slate-100 max-w-4xl mx-auto print:hidden" id="report7-search-area">
                         <form id="searchForm7" onsubmit="executeSearch7(event)" class="space-y-6">
-                            <div class="space-y-2 relative">
-                                <label for="companyName7" class="block text-sm font-semibold text-slate-700">ชื่อบริษัท / ร้านค้า</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                        <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                            <div class="grid grid-cols-1 gap-5">
+                                <div class="space-y-2 relative">
+                                    <label for="companyName7" class="block text-sm font-semibold text-slate-700">ชื่อบริษัท / ร้านค้า</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                            <svg class="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                                        </div>
+                                        <input type="text" id="companyName7" required autocomplete="off" value="${selectedCompany_forReport7}" oninput="handleSearchInput7(this.value)"
+                                            class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-700"
+                                            placeholder="กรอกชื่อบริษัทหรือร้านค้า...">
+                                        <ul id="suggestionsList7" class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl mt-1 shadow-lg max-h-60 overflow-y-auto hidden report7-custom-scrollbar divide-y divide-slate-100"></ul>
                                     </div>
-                                    <input type="text" id="companyName7" required autocomplete="off" value="${selectedCompany_forReport7}" oninput="handleSearchInput7(this.value)"
-                                        class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all font-medium text-slate-700"
-                                        placeholder="กรอกชื่อบริษัทหรือร้านค้า...">
-                                    <ul id="suggestionsList7" class="absolute z-50 w-full bg-white border border-slate-200 rounded-xl mt-1 shadow-lg max-h-60 overflow-y-auto hidden report7-custom-scrollbar divide-y divide-slate-100"></ul>
                                 </div>
                             </div>
                             <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3.5 rounded-xl transition-all duration-200 shadow-lg shadow-blue-600/20 transform hover:-translate-y-0.5 flex items-center justify-center">
@@ -2074,6 +2119,17 @@
             while (i < renderData.length) {
                 let currentCompany = renderData[i].companyName;
 
+                tbodyHtml += `
+                    <tr class="bg-blue-50/60 print:bg-gray-100">
+                        <td colspan="6" class="border-b border-blue-100 py-3 px-4 text-blue-800 font-bold text-[15px]">
+                            <div class="flex items-center">
+                                <svg class="w-5 h-5 mr-2 text-blue-600 print:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                                ชื่อบริษัท/สาขา: <span class="ml-1 text-slate-800">${currentCompany}</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+
                 let compItems = [];
                 while(i < renderData.length && renderData[i].companyName === currentCompany) {
                     compItems.push(renderData[i]);
@@ -2311,9 +2367,7 @@
                     ]);
                 } else if(cols.length === 1) { 
                     let text = cols[0].innerText.trim();
-                    if (!text.includes("ชื่อบริษัท/สาขา:")) {
-                        exportData.push([text]);
-                    }
+                    exportData.push([text]);
                 }
             });
             
@@ -2375,9 +2429,7 @@
                     </tr>`;
                 } else if(cols.length === 1) {
                     let text = cols[0].innerText.trim();
-                    if (!text.includes("ชื่อบริษัท/สาขา:")) {
-                        html += `<tr><td colspan="6" align="center">${text}</td></tr>`;
-                    }
+                    html += `<tr><td colspan="6" align="left" style="background-color: #f1f5f9;"><b>${text}</b></td></tr>`;
                 }
             });
             
