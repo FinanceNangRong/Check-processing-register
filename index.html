@@ -134,9 +134,9 @@
                 text-align: center;
                 margin-bottom: 15px;
             }
-            /* จัดหน้ากว้างแบบ Fixed กว้างรวม 275mm สำหรับรายงานที่ 1 (15+120+35+35+35+35) */
+            /* จัดหน้ากว้างแบบ Fixed กว้างรวม 251mm สำหรับรายงานที่ 1 และ 6 (15+96+35+35+35+35) */
             .report1-table-print {
-                width: 275mm !important; 
+                width: 251mm !important; 
                 table-layout: fixed;
                 margin: 0 auto; 
             }
@@ -732,6 +732,25 @@
             }
         });
 
+        // ฟังก์ชันสำหรับกรองข้อมูลเมื่อพิมพ์ค้นหาใน Dropdown ของรายงานที่ 5
+        function filterReport5Dropdown(containerId, searchText) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const labels = container.getElementsByTagName('label');
+            const filter = searchText.toLowerCase().replace(/\s+/g, '');
+            for (let i = 0; i < labels.length; i++) {
+                const span = labels[i].querySelector('span');
+                if (span) {
+                    const textValue = (span.textContent || span.innerText).toLowerCase().replace(/\s+/g, '');
+                    if (textValue.indexOf(filter) > -1) {
+                        labels[i].style.display = "";
+                    } else {
+                        labels[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
         // เพิ่มฟังก์ชันสำหรับอัปเดตค่า Multi-select ของคอลัมน์ M
         function updateReport5CategoryFilter(val, isChecked) {
             if (isChecked) {
@@ -876,7 +895,7 @@
                         <thead class="bg-blue-50 text-blue-900 border-b border-gray-200">
                             <tr>
                                 <th class="px-4 py-3 font-semibold text-center" style="width: 15mm;">ลำดับ</th>
-                                <th class="px-4 py-3 font-semibold" style="width: 120mm;">ค่า</th>
+                                <th class="px-4 py-3 font-semibold" style="width: 96mm;">ค่า</th>
                                 <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จำนวนเงิน</th>
                                 <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จ่าย</th>
                                 <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">ปรับปรุง</th>
@@ -1458,11 +1477,16 @@
                                         </svg>
                                     </button>
                                     <div id="compDropdown5" class="${report5CompanyDropdownOpen ? '' : 'hidden'} origin-top-right absolute left-0 mt-2 w-full sm:w-80 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-30">
-                                        <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 sticky top-0 z-10 rounded-t-md">
-                                            <button type="button" onclick="selectAllCompanies5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
-                                            <button type="button" onclick="clearAllCompanies5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                        <div class="sticky top-0 z-10 bg-white rounded-t-md shadow-sm">
+                                            <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 rounded-t-md">
+                                                <button type="button" onclick="selectAllCompanies5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
+                                                <button type="button" onclick="clearAllCompanies5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                            </div>
+                                            <div class="p-2 border-b border-gray-200">
+                                                <input type="text" placeholder="พิมพ์ค้นหาบริษัท..." oninput="filterReport5Dropdown('compListContainer5', this.value)" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
+                                            </div>
                                         </div>
-                                        <div class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
+                                        <div id="compListContainer5" class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
                                             ${uniqueCompanies.length > 0 ? uniqueCompanies.map(comp => `
                                                 <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0">
                                                     <input type="checkbox" value="${comp}" 
@@ -1485,11 +1509,16 @@
                                         </svg>
                                     </button>
                                     <div id="catDropdown5" class="${report5DropdownOpen ? '' : 'hidden'} origin-top-right absolute left-0 mt-2 w-full sm:w-64 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-20">
-                                        <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 sticky top-0 z-10 rounded-t-md">
-                                            <button type="button" onclick="selectAllCategories5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
-                                            <button type="button" onclick="clearAllCategories5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                        <div class="sticky top-0 z-10 bg-white rounded-t-md shadow-sm">
+                                            <div class="px-3 py-2 border-b border-gray-200 flex justify-between bg-gray-50 rounded-t-md">
+                                                <button type="button" onclick="selectAllCategories5()" class="text-xs font-semibold text-blue-600 hover:text-blue-800 focus:outline-none">เลือกทั้งหมด</button>
+                                                <button type="button" onclick="clearAllCategories5()" class="text-xs font-semibold text-red-600 hover:text-red-800 focus:outline-none">ล้าง</button>
+                                            </div>
+                                            <div class="p-2 border-b border-gray-200">
+                                                <input type="text" placeholder="พิมพ์ค้นหาค่า..." oninput="filterReport5Dropdown('catListContainer5', this.value)" class="w-full border border-gray-300 rounded px-2 py-1.5 text-sm focus:outline-none focus:border-blue-500" autocomplete="off">
+                                            </div>
                                         </div>
-                                        <div class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
+                                        <div id="catListContainer5" class="py-1 max-h-48 overflow-y-auto px-3" role="menu" aria-orientation="vertical">
                                             ${uniqueCategoriesM.length > 0 ? uniqueCategoriesM.map(cat => `
                                                 <label class="flex items-center py-2 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0">
                                                     <input type="checkbox" value="${cat}" 
@@ -1723,7 +1752,7 @@
                             <thead class="bg-blue-50 text-blue-900 border-b border-gray-200">
                                 <tr>
                                     <th class="px-4 py-3 font-semibold text-center" style="width: 15mm;">ลำดับ</th>
-                                    <th class="px-4 py-3 font-semibold" style="width: 120mm;">ค่า</th>
+                                    <th class="px-4 py-3 font-semibold" style="width: 96mm;">ค่า</th>
                                     <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จำนวนเงิน</th>
                                     <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">จ่าย</th>
                                     <th class="px-4 py-3 font-semibold text-right" style="width: 35mm;">ปรับปรุง</th>
