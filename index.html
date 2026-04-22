@@ -806,7 +806,18 @@
             }
             // จัดการรูปแบบการพิมพ์สำหรับแต่ละเมนู
             if (activeMenu === 5) {
-                printStyle.innerHTML = '@media print { @page { size: A4 portrait; margin: 10mm; } }';
+                printStyle.innerHTML = `
+                    @media print { 
+                        @page { size: A4 portrait; margin: 10mm; } 
+                        table th, table td {
+                            font-size: 7.8pt !important; /* เพิ่มขนาดตัวหนังสือขึ้น 20% */
+                            height: auto !important;
+                            padding: 1.5mm 3px !important;
+                        }
+                        .text-2xl { font-size: 18pt !important; }
+                        tfoot td { font-size: 8.5pt !important; }
+                    }
+                `;
             } else if (activeMenu === 8) {
                 printStyle.innerHTML = `
                     @media print { 
